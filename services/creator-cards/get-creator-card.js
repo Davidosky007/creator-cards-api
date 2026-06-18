@@ -17,32 +17,29 @@ async function getCreatorCard(serviceData, options = {}) {
   let result;
 
   try {
-    // Rule 1: card must exist and not be deleted
     const card = await CreatorCard.findOne({
-      query: { slug: data.slug, deleted: null },
+      query: { slug: data.slug },
     });
 
-    if (!card) {
+   
+
+    if (!card || card.deleted) {
       throwAppError(CreatorCardMessages.CARD_NOT_FOUND, 'NF01');
     }
 
-    // Rule 2: draft cards are not publicly retrievable
     if (card.status === 'draft') {
       throwAppError(CreatorCardMessages.CARD_IS_DRAFT, 'NF02');
     }
 
-    // Rule 3 & 4: private card access control
     if (card.access_type === 'private') {
       if (!data.access_code) {
         throwAppError(CreatorCardMessages.PRIVATE_CARD_NO_CODE, 'AC03');
       }
-
       if (data.access_code !== card.access_code) {
         throwAppError(CreatorCardMessages.INVALID_ACCESS_CODE, 'AC04');
       }
     }
 
-    // access_code is NEVER included in retrieval responses
     result = serializeCard(card, { includeAccessCode: false });
   } catch (error) {
     appLogger.errorX(error, 'get-creator-card-error');

@@ -19,12 +19,13 @@ async function deleteCreatorCard(serviceData, options = {}) {
   try {
     // Find card — must exist and not already be deleted
     const card = await CreatorCard.findOne({
-      query: { slug: data.slug, deleted: null },
+      query: { slug: data.slug },
     });
 
-    if (!card) {
+    if (!card || card.deleted) {
       throwAppError(CreatorCardMessages.CARD_NOT_FOUND, 'NF01');
     }
+
 
     const now = Date.now();
 
